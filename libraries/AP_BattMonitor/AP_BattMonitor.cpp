@@ -20,6 +20,7 @@
 #include "AP_BattMonitor_Torqeedo.h"
 #include "AP_BattMonitor_FuelLevel_Analog.h"
 #include "AP_BattMonitor_Synthetic_Current.h"
+#include "AP_BattMonitor_MAVLink.h"
 
 #include <AP_HAL/AP_HAL.h>
 
@@ -376,6 +377,11 @@ AP_BattMonitor::init()
                 drivers[instance] = new AP_BattMonitor_EFI(*this, state[instance], _params[instance]);
                 break;
 #endif // AP_BATTERY_EFI_ENABLED
+#if AP_BATTMON_MAVLINK_ENABLED
+            case Type::MAVLink_Battery:
+                drivers[instance] = new AP_BattMonitor_MAVLink(*this, state[instance], _params[instance]);
+                break;
+#endif
             case Type::NONE:
             default:
                 break;
@@ -878,6 +884,26 @@ bool AP_BattMonitor::healthy() const
         }
     }
     return true;
+}
+
+void AP_BattMonitor::handle_mavlink_battery_message(const mavlink_message_t &msg)
+{
+    switch (msg.msgid) {
+        case MAVLINK_MSG_ID_BATTERY_STATUS: 
+        case MAVLINK_MSG_ID_SMART_BATTERY_INFO:
+            for (uint8_t i=0; i<_num_instances; i++) {
+                if (drivers[i] != nullptr) {
+                    if (drivers[i]->handle_message(msg)) {
+                        return;
+                    }
+                }
+            }
+            break;
+
+        default:
+            // unhandled
+            break;
+    }
 }
 
 namespace AP {

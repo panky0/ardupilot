@@ -45,6 +45,7 @@ class AP_BattMonitor_LTC2946;
 class AP_BattMonitor_Torqeedo;
 class AP_BattMonitor_FuelLevel_Analog;
 class AP_BattMonitor_EFI;
+class AP_BattMonitor_MAVLink;
 
 
 class AP_BattMonitor
@@ -69,6 +70,7 @@ class AP_BattMonitor
     friend class AP_BattMonitor_Torqeedo;
     friend class AP_BattMonitor_FuelLevel_Analog;
     friend class AP_BattMonitor_Synthetic_Current;
+    friend class AP_BattMonitor_MAVLink;
 
 public:
 
@@ -107,6 +109,7 @@ public:
         Analog_Volt_Synthetic_Current  = 25,
         INA239_SPI                     = 26,
         EFI                            = 27,
+        MAVLink_Battery                = 28,
     };
 
     FUNCTOR_TYPEDEF(battery_failsafe_handler_fn_t, void, const char *, const int8_t);
@@ -265,6 +268,9 @@ public:
 
     // Returns mavlink fault state
     uint32_t get_mavlink_fault_bitmask(const uint8_t instance) const;
+    
+    // handle mavlink msg 
+    void handle_mavlink_battery_message(const mavlink_message_t &msg);
 
     static const struct AP_Param::GroupInfo var_info[];
 
